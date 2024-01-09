@@ -140,6 +140,7 @@ app.post("/token", async (req, res) => {
 
   if (!refreshToken) {
     res.status(401).json({ msg: "User is not valid" });
+    return;
   }
 
   const token = await dataSource
@@ -148,6 +149,7 @@ app.post("/token", async (req, res) => {
 
   if (!token) {
     res.status(401).json({ msg: "User is not valid" });
+    return;
   }
 
   jwt.verify(
@@ -156,6 +158,7 @@ app.post("/token", async (req, res) => {
     (err: Error, user: any) => {
       if (err) {
         res.status(401).json({ msg: "User is not valid" });
+        return;
       }
 
       const accessToken = jwt.sign(
@@ -169,4 +172,16 @@ app.post("/token", async (req, res) => {
       res.status(201).json({ accessToken });
     }
   );
+});
+
+app.delete("/logout", async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ msg: "User is already logged out" });
+  }
+
+  dataSource.getRepository(Tokens).delete({ token: refreshToken });
+
+  return res.status(204).json({ msg: "User logged out" });
 });
